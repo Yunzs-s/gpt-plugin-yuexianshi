@@ -1,4 +1,4 @@
-param([switch]$CheckOnly,[switch]$Preview,[string]$AppDir=$PSScriptRoot)
+﻿param([switch]$CheckOnly,[switch]$Preview,[string]$AppDir=$PSScriptRoot)
 $ErrorActionPreference='Stop'
 $script:appDir=$AppDir
 $script:configPath=Join-Path $script:appDir 'installation.json'
@@ -106,12 +106,16 @@ try{
   # so DWM, GetWindowRect and SetWindowPos all use physical screen pixels.
   [GptWidgetNative]::SetThreadDpiAwarenessContext([IntPtr](-4)) | Out-Null
 }catch{}
-$script:window=[Windows.Markup.XamlReader]::Parse((Get-Content -LiteralPath (Join-Path $script:appDir 'widget.xaml') -Raw -Encoding UTF8))
+# Astral adapter: anchor relative PNG URIs to the XAML file, not the working directory.
+$widgetXamlFile=[IO.Path]::GetFullPath((Join-Path $script:appDir 'widget.xaml'))
+$widgetXamlReader=[Xml.XmlReader]::Create($widgetXamlFile)
+try{$script:window=[Windows.Markup.XamlReader]::Load($widgetXamlReader)}finally{$widgetXamlReader.Dispose()}
 # Capture the unscaled XAML canvas before native resizing changes Window.Width/Height.
 $script:designWidth=[double]$script:window.FindName('AnimationStage').Width
 $script:designHeight=[double]$script:window.FindName('AnimationStage').Height
 $script:ui=@{}
-foreach($name in @('Root','Bubble','Tail','TailNear','SceneText','QuotaText','QuoteText','BubbleShape','Girl','PressScale','FacingScale','TextFacingScale','Header','Refresh','MenuButton','Status','LiveDot','ShortRow','WeekRow','ShortLabel','WeekLabel','ShortUsed','ShortLeft','ShortReset','ShortBar','WeekUsed','WeekLeft','WeekReset','WeekBar')){$script:ui[$name]=$script:window.FindName($name)}
+foreach($name in @('AstralPanel','AstralFrame','Root','Bubble','Tail','TailNear','SceneText','QuotaText','QuoteText','BubbleShape','Girl','PressScale','FacingScale','TextFacingScale','Header','Refresh','MenuButton','Status','LiveDot','ShortRow','WeekRow','ShortLabel','WeekLabel','ShortUsed','ShortLeft','ShortReset','ShortBar','WeekUsed','WeekLeft','WeekReset','WeekBar')){$script:ui[$name]=$script:window.FindName($name)}
+$script:bubbleSkin='classic';
 $script:characterId='gpt-dragon';$script:activeCharacter=$null
 $script:status=$null
 $script:statusStamp=0
@@ -155,6 +159,7 @@ try{$settings=Get-Content -LiteralPath $settingsFile -Raw -Encoding UTF8 | Conve
   if($null-ne $settings.desktopLeft){try{$value=[double]$settings.desktopLeft;if(![double]::IsNaN($value)-and ![double]::IsInfinity($value)-and [Math]::Abs($value)-le 100000){$script:desktopLeft=$value}}catch{}}
   if($null-ne $settings.desktopTop){try{$value=[double]$settings.desktopTop;if(![double]::IsNaN($value)-and ![double]::IsInfinity($value)-and [Math]::Abs($value)-le 100000){$script:desktopTop=$value}}catch{}}
   if($settings.characterId-is [string]){$script:characterId=$settings.characterId}
+  if(@('classic','astral-starlight')-contains $settings.bubbleSkin){$script:bubbleSkin=$settings.bubbleSkin}
 }catch{$script:settingsLoadFailed=$true}
 Initialize-WidgetAutoQuoteSettings $settings
 Initialize-CompletionNotificationState $settings
@@ -162,7 +167,7 @@ function Write-WidgetJson($file,$value){
   $temp=$file+'.tmp';[IO.File]::WriteAllText($temp,($value|ConvertTo-Json -Depth 6),[Text.UTF8Encoding]::new($false))
   if([IO.File]::Exists($file)){[IO.File]::Replace($temp,$file,($file+'.bak'),$true)}else{[IO.File]::Move($temp,$file)}
 }
-function Save-Settings {Write-WidgetJson $settingsFile @{layoutVersion=2;right=$script:offsetRight;left=$script:offsetLeft;bottom=$script:offsetBottom;anchor=$script:anchor;side=$script:side;scale=$script:scale;bubbleScale=$script:bubbleScale;collapsed=$script:collapsed;soundOn=$script:soundOn;soundVolume=$script:soundVolume;bubbleTapAdvance=$script:bubbleTapAdvance;hideMenu=$script:hideMenu;colorMode=$script:colorMode;colorChance=$script:colorChance;colorTextChance=$script:colorTextChance;colorPaused=$script:colorPaused;followHost=$script:followHost;desktopTopmost=$script:desktopTopmost;desktopLeft=$script:desktopLeft;desktopTop=$script:desktopTop;characterId=$script:characterId;autoQuoteEnabled=$script:autoQuoteEnabled;autoQuoteIntervalSeconds=$script:autoQuoteIntervalSeconds;taskCompletionBubble=$script:completionNotificationsEnabled}}
+function Save-Settings {Write-WidgetJson $settingsFile @{layoutVersion=2;right=$script:offsetRight;left=$script:offsetLeft;bottom=$script:offsetBottom;anchor=$script:anchor;side=$script:side;scale=$script:scale;bubbleScale=$script:bubbleScale;collapsed=$script:collapsed;soundOn=$script:soundOn;soundVolume=$script:soundVolume;bubbleTapAdvance=$script:bubbleTapAdvance;hideMenu=$script:hideMenu;colorMode=$script:colorMode;colorChance=$script:colorChance;colorTextChance=$script:colorTextChance;colorPaused=$script:colorPaused;followHost=$script:followHost;desktopTopmost=$script:desktopTopmost;desktopLeft=$script:desktopLeft;desktopTop=$script:desktopTop;characterId=$script:characterId;autoQuoteEnabled=$script:autoQuoteEnabled;autoQuoteIntervalSeconds=$script:autoQuoteIntervalSeconds;taskCompletionBubble=$script:completionNotificationsEnabled;bubbleSkin=$script:bubbleSkin}}
 function Set-WidgetCharacter([string]$Id,[switch]$NoSave) {
   if($script:widgetMusic -and $script:widgetMusic.Enabled){Stop-WidgetMusic}
   $character=Get-WidgetCharacter $script:appDir $script:dataDir $Id
@@ -180,7 +185,14 @@ function Set-WidgetCharacter([string]$Id,[switch]$NoSave) {
         if($overlay -and $overlay.OpacityMask){$overlay.OpacityMask.ImageSource=$image;$overlay.OpacityMask.Stretch=[Windows.Media.Stretch]::Uniform}
       }
     }
-    if(!$NoSave){Save-Settings}
+    if(!$astral -and $script:widgetColors){
+    foreach($entry in $script:widgetColors.original){
+      if($entry.element-eq $shape -or $entry.element-eq $script:ui.Tail -or $entry.element-eq $script:ui.TailNear){
+        $entry.value=if($entry.property-eq 'Fill'){$entry.element.Fill}else{$entry.element.Stroke}
+      }
+    }
+  }
+  if(!$NoSave){Save-Settings}
   }catch{
     $script:bitmap=$previous.bitmap;$script:alphaBitmap=$previous.alpha;$script:alphaStride=$previous.stride;$script:alphaPixels=$previous.pixels
     $script:characterId=$previous.id;$script:activeCharacter=$previous.character;$script:ui.Girl.Source=$previous.bitmap
@@ -379,6 +391,37 @@ function Animate-Value($target,$property,[double]$to,[int]$duration,[int]$delay=
   if($rebound){$ease.X1=0.34;$ease.Y1=1.56;$ease.X2=0.64;$ease.Y2=1}
   $ease.EasingMode=[Windows.Media.Animation.EasingMode]::EaseIn;$animation.EasingFunction=$ease
   $target.BeginAnimation($property,$animation)
+}
+function Set-WidgetBubbleSkin([string]$Id,[switch]$NoSave){
+  if(@('classic','astral-starlight')-notcontains $Id){throw "Unknown bubble skin: $Id"}
+  $script:bubbleSkin=$Id
+  $astral=($Id-eq 'astral-starlight')
+  $script:ui.AstralPanel.Visibility=if($astral){[Windows.Visibility]::Visible}else{[Windows.Visibility]::Collapsed}
+  $script:ui.AstralFrame.Visibility=if($astral){[Windows.Visibility]::Visible}else{[Windows.Visibility]::Collapsed}
+  $shape=$script:ui.BubbleShape
+  $shape.Data=[Windows.Media.Geometry]::Parse('M 27,85 A 128,79 0 1 1 283,85 A 128,79 0 0 1 196,160 A 20,10 0 0 1 161,164 A 128,79 0 0 1 27,85 Z')
+  if($astral){
+    $shape.Opacity=0
+    $mask=[Windows.Media.BrushConverter]::new().ConvertFromString('#00FFFFFF')
+    foreach($name in @('Tail','TailNear')){$script:ui[$name].OpacityMask=$mask;$script:ui[$name].IsHitTestVisible=$false}
+  }else{
+    $shape.Opacity=1;$shape.Fill=[Windows.Media.BrushConverter]::new().ConvertFromString('#FFFFFF')
+    $shape.Stroke=[Windows.Media.BrushConverter]::new().ConvertFromString('#745A98')
+    $shape.StrokeThickness=4
+    foreach($name in @('Tail','TailNear')){$script:ui[$name].OpacityMask=$null;$script:ui[$name].IsHitTestVisible=$true;$script:ui[$name].Fill=$shape.Fill;$script:ui[$name].Stroke=$shape.Stroke;$script:ui[$name].StrokeThickness=4}
+  }
+  if(!$astral -and $script:widgetColors){
+    foreach($entry in $script:widgetColors.original){
+      if($entry.element-eq $shape -or $entry.element-eq $script:ui.Tail -or $entry.element-eq $script:ui.TailNear){
+        $entry.value=if($entry.property-eq 'Fill'){$entry.element.Fill}else{$entry.element.Stroke}
+      }
+    }
+  }
+  if(!$NoSave){Save-Settings}
+  if($script:quoteLayout){Fit-QuoteText}
+  if($script:ui.SceneText){Set-WidgetSceneLayout}
+  if($script:widgetColors){Update-WidgetColorScene}
+  if($script:settingsMenuUi){Update-WidgetSettingsMenu}
 }
 function Set-BubbleState {
   foreach($name in @('Bubble','Tail','TailNear')){
@@ -693,7 +736,7 @@ function Update-Quota {
     if(!$q){
       $script:ui[$prefix+'Used'].Text='已用 —';$script:ui[$prefix+'Left'].Text='—'
       $script:ui[$prefix+'Reset'].Text=if($script:status -and $script:status.queryOk-ne $true){'额度读取异常'}else{'暂无额度数据'}
-      $script:ui[$prefix+'Bar'].Width=0;$script:ui[$prefix+'Left'].Foreground=[Windows.Media.BrushConverter]::new().ConvertFromString('#95889F');continue
+      $script:ui[$prefix+'Bar'].Width=0;$script:ui[$prefix+'Left'].Foreground=[Windows.Media.BrushConverter]::new().ConvertFromString('#CDBDDD');continue
     }
     $hasReset=$null-ne $q.resetsAt -and [double]$q.resetsAt-gt 0
     $expired=$hasReset -and [double]$q.resetsAt-le $now
@@ -705,7 +748,7 @@ function Update-Quota {
     $script:ui[$prefix+'Bar'].Width=if($expired){0}else{184*[double]$q.remaining/100}
     $color=if($expired){'#B3A7C0'}elseif([double]$q.used-ge 90){'#D77659'}elseif([double]$q.used-ge 75){'#D0A051'}else{'#9B86C1'}
     $script:ui[$prefix+'Bar'].Background=[Windows.Media.BrushConverter]::new().ConvertFromString($color)
-    $valueColor=if($expired){'#95889F'}elseif([double]$q.used-ge 90){'#B74839'}elseif([double]$q.used-ge 75){'#A06C1C'}else{'#745A98'}
+    $valueColor=if($expired){'#CDBDDD'}elseif([double]$q.used-ge 90){'#FFAD9E'}elseif([double]$q.used-ge 75){'#F5CF85'}else{'#E7CDFF'}
     $script:ui[$prefix+'Left'].Foreground=[Windows.Media.BrushConverter]::new().ConvertFromString($valueColor)
   }
   $script:ui.WeekRow.Margin=if($script:ui.ShortRow.Visibility-eq [Windows.Visibility]::Collapsed){[Windows.Thickness]::new(0,1,0,0)}else{[Windows.Thickness]::new(0,4,0,0)}
@@ -728,7 +771,7 @@ function Update-Quota {
   Update-BubbleTooltip
   if($script:widgetColors){Update-WidgetColorScene}
 }
-Set-Appearance;Set-BubbleState;Initialize-WidgetColors;Update-Quota
+Set-Appearance;Set-BubbleState;Initialize-WidgetColors;Set-WidgetBubbleSkin $script:bubbleSkin -NoSave;Update-Quota
 if($CheckOnly){$hostWindow=[GptWidgetNative]::FindCodex();$foregroundWindow=[GptWidgetNative]::GetAncestor([GptWidgetNative]::GetForegroundWindow(),2);@{ok=$true;imageLoaded=$script:bitmap.PixelWidth-gt 0;characterId=$script:characterId;characterName=$script:activeCharacter.name;soundVolume=$script:soundVolume;sizing=@{character=$script:scale;bubble=$script:bubbleScale;display=$script:displayScale};autoQuotes=@{enabled=$script:autoQuoteEnabled;intervalSeconds=$script:autoQuoteIntervalSeconds};completion=(Get-CompletionNotificationStatus);placement=@{right=$script:offsetRight;left=$script:offsetLeft;bottom=$script:offsetBottom};host=$hostWindow.ToInt64();hostTitle=[GptWidgetNative]::Title($hostWindow);foreground=$foregroundWindow.ToInt64();foregroundTitle=[GptWidgetNative]::Title($foregroundWindow);dataDir=$script:dataDir}|ConvertTo-Json;return}
 if($Preview){
   $script:collapsed=$false;Set-Appearance;Set-BubbleState;Apply-Scene

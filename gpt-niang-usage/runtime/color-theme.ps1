@@ -1,4 +1,4 @@
-# Native WPF flowing colours. One shared phase keeps every surface in sync.
+﻿# Native WPF flowing colours. One shared phase keeps every surface in sync.
 $script:colorMode='mixed'
 $script:colorChance=0.5
 $script:colorTextChance=3
@@ -87,7 +87,7 @@ function Restore-WidgetOriginalColors([switch]$KeepAnimation) {
   foreach($row in (Get-QuotaRows)){
     $q=$row.window
     $expired=$q -and $q.resetsAt -and [double]$q.resetsAt-le [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
-    $ink=if(!$q -or $expired){'#95889F'}elseif([double]$q.used-ge 90){'#B74839'}elseif([double]$q.used-ge 75){'#A06C1C'}else{'#745A98'}
+    $ink=if(!$q -or $expired){'#CDBDDD'}elseif([double]$q.used-ge 90){'#FFAD9E'}elseif([double]$q.used-ge 75){'#F5CF85'}else{'#E7CDFF'}
     $bar=if(!$q){'#AA95CD'}elseif($expired){'#B3A7C0'}elseif([double]$q.used-ge 90){'#D77659'}elseif([double]$q.used-ge 75){'#D0A051'}else{'#9B86C1'}
     $script:ui[$row.prefix+'Left'].Foreground=[Windows.Media.BrushConverter]::new().ConvertFromString($ink)
     $script:ui[$row.prefix+'Bar'].Background=[Windows.Media.BrushConverter]::new().ConvertFromString($bar)
@@ -152,8 +152,8 @@ function Set-WidgetColorPalette([string]$Name,[switch]$Immediate){
     foreach($i in 0..10){
       $position=$i/10.0*($keys.Count-1);$index=[Math]::Min($keys.Count-2,[int][Math]::Floor($position))
       $target=Mix-WidgetColor $keys[$index] $keys[$index+1] ($position-$index)
-      if($role-eq 'ink'){$target=Mix-WidgetColor $target ([Windows.Media.ColorConverter]::ConvertFromString('#271938')) 0.44}
-      elseif($role-eq 'surface'){$target=Mix-WidgetColor $target ([Windows.Media.Colors]::White) 0.92}
+      if($role-eq 'ink'){$target=Mix-WidgetColor $target ([Windows.Media.Colors]::White) 0.62}
+      elseif($role-eq 'surface'){$target=Mix-WidgetColor $target ([Windows.Media.ColorConverter]::ConvertFromString('#24143B')) 0.65}
       $stop=$brush.GradientStops[$i];$from=$stop.Color
       $stop.BeginAnimation([Windows.Media.GradientStop]::ColorProperty,$null);$stop.Color=$target
       if(!$Immediate){

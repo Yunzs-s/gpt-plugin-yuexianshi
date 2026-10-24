@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "skinId": "astral-starlight",
+  "frame": {
+    "artworkScale": 0.2,
+    "top": -9.0,
+    "left": -8.0,
+    "height": 190,
+    "width": 310
+  },
+  "contentSafeRect": {
+    "top": 13.400000000000002,
+    "left": 33.6,
+    "height": 143.6,
+    "width": 246.0
+  },
+  "runtime": "Windows PowerShell 5.1 / WPF",
+  "runtimeDllRequired": false
+}

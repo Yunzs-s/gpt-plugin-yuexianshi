@@ -8,7 +8,7 @@
     <Style TargetType="Button">
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="BorderThickness" Value="0"/>
-      <Setter Property="Foreground" Value="#79659A"/>
+      <Setter Property="Foreground" Value="#E5D2FA"/>
       <Setter Property="Cursor" Value="Hand"/>
       <Setter Property="Focusable" Value="False"/>
       <Setter Property="Template">
@@ -17,7 +17,7 @@
             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
           </Border>
           <ControlTemplate.Triggers>
-            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ButtonBody" Property="Background" Value="#EDE7F6"/></Trigger>
+            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ButtonBody" Property="Background" Value="#59406F"/></Trigger>
           </ControlTemplate.Triggers>
         </ControlTemplate></Setter.Value>
       </Setter>
@@ -29,55 +29,76 @@
     <Canvas.RenderTransform><TransformGroup><ScaleTransform x:Name="PressScale"/><ScaleTransform x:Name="FacingScale"/></TransformGroup></Canvas.RenderTransform>
     <Canvas x:Name="Bubble" Width="350" Height="239" Cursor="Hand" RenderTransformOrigin="0.4425,0.36">
       <Canvas.RenderTransform><ScaleTransform ScaleX="1" ScaleY="1"/></Canvas.RenderTransform>
-      <Path x:Name="BubbleShape" Fill="#FFFFFF" Stroke="#745A98" StrokeThickness="4"
-            StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-            Data="M 27,85 A 128,79 0 1 1 283,85 A 128,79 0 0 1 196,160 A 20,10 0 0 1 161,164 A 128,79 0 0 1 27,85 Z"/>
+      <!-- Astral adapter: exported from SkinFrame.Core; no custom runtime DLL. -->
+      <Image x:Name="AstralPanel" Visibility="Collapsed" Canvas.Left="10.8" Canvas.Top="11.8" Width="276.4" Height="149.8" Source="skins/astral-starlight/assets/background.png" Stretch="Fill" IsHitTestVisible="False" RenderOptions.BitmapScalingMode="HighQuality"/>
+      <Path x:Name="BubbleShape" Data="M 10.8,11.8 H 287.2 V 161.6 H 10.8 Z" Fill="Transparent" Stroke="Transparent" StrokeThickness="1" Opacity="0.22"/>
+      <Canvas x:Name="AstralFrame" Visibility="Collapsed" IsHitTestVisible="False" UseLayoutRounding="False">
+        <Image Canvas.Left="-8" Canvas.Top="-9" Width="41.6" Height="37.6" Source="skins/astral-starlight/assets/corner-tl.png" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Image Canvas.Left="279.6" Canvas.Top="-9" Width="22.4" Height="37.6" Source="skins/astral-starlight/assets/corner-tr.png" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Image Canvas.Left="-8" Canvas.Top="157" Width="41.6" Height="24" Source="skins/astral-starlight/assets/corner-bl.png" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Image Canvas.Left="279.6" Canvas.Top="157" Width="22.4" Height="24" Source="skins/astral-starlight/assets/corner-br.png" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Image Canvas.Left="33.6" Canvas.Top="-9" Width="107" Height="37.6" Source="skins/astral-starlight/assets/top-a.png" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Image Canvas.Left="140.6" Canvas.Top="-9" Width="12.8" Height="37.6" Source="skins/astral-starlight/assets/top-star.png" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Image Canvas.Left="153.4" Canvas.Top="-9" Width="126.2" Height="37.6" Source="skins/astral-starlight/assets/top-b.png" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Image Canvas.Left="33.6" Canvas.Top="157" Width="107" Height="24" Source="skins/astral-starlight/assets/bottom-a.png" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Image Canvas.Left="140.6" Canvas.Top="157" Width="12.8" Height="24" Source="skins/astral-starlight/assets/bottom-star.png" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Image Canvas.Left="153.4" Canvas.Top="157" Width="126.2" Height="24" Source="skins/astral-starlight/assets/bottom-b.png" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Image Canvas.Left="-8" Canvas.Top="28.6" Width="41.6" Height="15.4" Source="skins/astral-starlight/assets/left-a.png" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Image Canvas.Left="-8" Canvas.Top="44" Width="41.6" Height="36" Source="skins/astral-starlight/assets/left-star.png" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Image Canvas.Left="-8" Canvas.Top="80" Width="41.6" Height="77" Source="skins/astral-starlight/assets/left-b.png" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Image Canvas.Left="279.6" Canvas.Top="28.6" Width="22.4" Height="15.4" Source="skins/astral-starlight/assets/right-a.png" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Image Canvas.Left="279.6" Canvas.Top="44" Width="22.4" Height="36" Source="skins/astral-starlight/assets/right-star.png" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Image Canvas.Left="279.6" Canvas.Top="80" Width="22.4" Height="77" Source="skins/astral-starlight/assets/right-b.png" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Image Canvas.Left="33.6" Canvas.Top="28.6" Width="246" Height="128.4" Source="skins/astral-starlight/assets/center.png" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality"/>
+      </Canvas>
       <Grid x:Name="SceneText" Canvas.Left="63" Canvas.Top="22" Width="184" Height="115" RenderTransformOrigin="0.5,0.5">
         <Grid.RenderTransform><ScaleTransform x:Name="TextFacingScale"/></Grid.RenderTransform>
       <StackPanel x:Name="QuotaText" VerticalAlignment="Center">
         <Grid x:Name="HeaderRow" Height="16">
           <Grid.ColumnDefinitions><ColumnDefinition Width="24"/><ColumnDefinition Width="*"/><ColumnDefinition Width="24"/></Grid.ColumnDefinitions>
-          <TextBlock x:Name="Header" Grid.Column="1" Text="剩余额度" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="136" TextAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" FontSize="12" LineHeight="16" LineStackingStrategy="BlockLineHeight" FontWeight="SemiBold" Foreground="#7D6B91" IsHitTestVisible="False" ToolTip="重置时间按当前机器的本地时间显示"/>
+          <TextBlock x:Name="Header" Grid.Column="1" Text="剩余额度" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="136" TextAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" FontSize="12" LineHeight="16" LineStackingStrategy="BlockLineHeight" FontWeight="SemiBold" Foreground="#E3D3F4" IsHitTestVisible="False" ToolTip="重置时间按当前机器的本地时间显示"/>
           <Button x:Name="Refresh" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" Width="20" Height="16" Content="↻" FontSize="12" ToolTip="立即刷新额度"/>
         </Grid>
         <StackPanel x:Name="ShortRow" Margin="0,1,0,0" IsHitTestVisible="False">
         <Grid Height="25">
-          <TextBlock x:Name="ShortLabel" Text="5 小时" FontSize="13" VerticalAlignment="Center" Foreground="#76638D"/>
-          <TextBlock x:Name="ShortLeft" Text="—" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="Segoe UI" FontSize="24" LineHeight="25" LineStackingStrategy="BlockLineHeight" FontWeight="Bold" Foreground="#745A98"/>
+          <TextBlock x:Name="ShortLabel" Text="5 小时" FontSize="13" VerticalAlignment="Center" Foreground="#DCC8F2"/>
+          <TextBlock x:Name="ShortLeft" Text="—" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="Segoe UI" FontSize="24" LineHeight="25" LineStackingStrategy="BlockLineHeight" FontWeight="Bold" Foreground="#F0DFFF"/>
         </Grid>
-        <Border Height="4" Background="#EAE4F3" CornerRadius="2" Margin="0,1,0,0">
+        <Border Height="4" Background="#332447" CornerRadius="2" Margin="0,1,0,0">
           <Border x:Name="ShortBar" Background="#AA95CD" CornerRadius="2" Width="0" HorizontalAlignment="Left"/>
         </Border>
-        <TextBlock x:Name="ShortReset" Text="等待额度数据" Margin="0,1,0,0" FontSize="12" LineHeight="15" LineStackingStrategy="BlockLineHeight" Foreground="#7D6B91"/>
+        <TextBlock x:Name="ShortReset" Text="等待额度数据" Margin="0,1,0,0" FontSize="12" LineHeight="15" LineStackingStrategy="BlockLineHeight" Foreground="#E3D3F4"/>
         <TextBlock x:Name="ShortUsed" Visibility="Collapsed" Text="已用 —"/>
         </StackPanel>
         <StackPanel x:Name="WeekRow" Margin="0,4,0,0" IsHitTestVisible="False">
         <Grid Height="25">
-          <TextBlock x:Name="WeekLabel" Text="每周" FontSize="13" VerticalAlignment="Center" Foreground="#76638D"/>
-          <TextBlock x:Name="WeekLeft" Text="—" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="Segoe UI" FontSize="24" LineHeight="25" LineStackingStrategy="BlockLineHeight" FontWeight="Bold" Foreground="#745A98"/>
+          <TextBlock x:Name="WeekLabel" Text="每周" FontSize="13" VerticalAlignment="Center" Foreground="#DCC8F2"/>
+          <TextBlock x:Name="WeekLeft" Text="—" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="Segoe UI" FontSize="24" LineHeight="25" LineStackingStrategy="BlockLineHeight" FontWeight="Bold" Foreground="#F0DFFF"/>
         </Grid>
-        <Border Height="4" Background="#EAE4F3" CornerRadius="2" Margin="0,1,0,0">
+        <Border Height="4" Background="#332447" CornerRadius="2" Margin="0,1,0,0">
           <Border x:Name="WeekBar" Background="#AA95CD" CornerRadius="2" Width="0" HorizontalAlignment="Left"/>
         </Border>
-        <TextBlock x:Name="WeekReset" Text="等待额度数据" Margin="0,1,0,0" FontSize="12" LineHeight="15" LineStackingStrategy="BlockLineHeight" Foreground="#7D6B91"/>
+        <TextBlock x:Name="WeekReset" Text="等待额度数据" Margin="0,1,0,0" FontSize="12" LineHeight="15" LineStackingStrategy="BlockLineHeight" Foreground="#E3D3F4"/>
         <TextBlock x:Name="WeekUsed" Visibility="Collapsed" Text="已用 —"/>
         </StackPanel>
         <TextBlock x:Name="Status" Visibility="Collapsed" Text="正在读取额度…"/>
       </StackPanel>
-        <TextBlock x:Name="QuoteText" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" FontSize="20" FontWeight="Bold" LineHeight="25" Foreground="#745A98" IsHitTestVisible="False" Text="我在这儿，慢慢来就好。"/>
+        <TextBlock x:Name="QuoteText" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" FontSize="20" FontWeight="Bold" LineHeight="25" Foreground="#F0DFFF" IsHitTestVisible="False" Text="我在这儿，慢慢来就好。"/>
       </Grid>
     <Ellipse x:Name="LiveDot" Visibility="Collapsed" Canvas.Left="134" Canvas.Top="17" Width="4" Height="4" Fill="#9B86C1" IsHitTestVisible="False"/>
     </Canvas>
-    <Ellipse x:Name="Tail" Canvas.Left="108" Canvas.Top="182" Width="25" Height="18" Fill="#FFFFFF" Stroke="#745A98" StrokeThickness="4" RenderTransformOrigin="0.5,0.5">
+    <Ellipse IsHitTestVisible="False" x:Name="Tail" Canvas.Left="108" Canvas.Top="182" Width="25" Height="18" Fill="#FFFFFF" Stroke="#745A98" StrokeThickness="4" RenderTransformOrigin="0.5,0.5">
+      <Ellipse.OpacityMask><SolidColorBrush Color="Transparent"/></Ellipse.OpacityMask>
       <Ellipse.RenderTransform><ScaleTransform/></Ellipse.RenderTransform>
     </Ellipse>
-    <Ellipse x:Name="TailNear" Canvas.Left="142" Canvas.Top="214" Width="17" Height="12" Fill="#FFFFFF" Stroke="#745A98" StrokeThickness="4" RenderTransformOrigin="0.5,0.5">
+    <Ellipse IsHitTestVisible="False" x:Name="TailNear" Canvas.Left="142" Canvas.Top="214" Width="17" Height="12" Fill="#FFFFFF" Stroke="#745A98" StrokeThickness="4" RenderTransformOrigin="0.5,0.5">
+      <Ellipse.OpacityMask><SolidColorBrush Color="Transparent"/></Ellipse.OpacityMask>
       <Ellipse.RenderTransform><ScaleTransform/></Ellipse.RenderTransform>
     </Ellipse>
     <Image x:Name="Girl" Canvas.Left="142" Canvas.Top="142" Width="208" Height="208" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" Cursor="Hand"
            ToolTip="点角色看额度；点气泡看语录，再点收起；拖动调整位置；右键设置"/>
     <Button x:Name="MenuButton" Canvas.Left="320" Canvas.Top="162" Width="24" Height="24"
-            FontSize="15" Opacity="0" IsHitTestVisible="False" Background="#EDE7F6" ToolTip="挂件设置">
+            FontSize="15" Opacity="0" IsHitTestVisible="False" Background="#3F2B58" ToolTip="挂件设置">
       <Viewbox Width="14" Height="14" Stretch="Uniform">
         <Canvas Width="16" Height="16" UseLayoutRounding="False" SnapsToDevicePixels="False">
           <Path x:Name="MenuIconLines" Data="M 2,4 L 14,4 M 2,8 L 14,8 M 2,12 L 14,12"

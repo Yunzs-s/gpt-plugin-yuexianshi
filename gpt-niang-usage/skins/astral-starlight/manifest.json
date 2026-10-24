@@ -1,0 +1,285 @@
+{
+  "schemaVersion": 1,
+  "id": "astral-starlight",
+  "version": "1.0.0",
+  "stage": "skin-assets",
+  "name": "星象星光",
+  "nativeSize": {
+    "width": 1536,
+    "height": 1024
+  },
+  "pixelsPerLogicalUnit": 2,
+  "minimumNativeSize": {
+    "width": 1152,
+    "height": 1008
+  },
+  "defaultLogicalSize": {
+    "width": 768,
+    "height": 512
+  },
+  "minimumLogicalSize": {
+    "width": 576,
+    "height": 504
+  },
+  "source": {
+    "pixelFormat": "RGBA8 straight alpha",
+    "note": "Transparent exterior and interior, soft starlight alpha.",
+    "file": "source/frame-overlay.png",
+    "sha256": "1ec2b2687cafb1b062af308a2cb568bbc17f6fbb4e3e9adcc19a7b3736912907"
+  },
+  "background": {
+    "source": "source/approved-full-frame.png",
+    "mode": "single continuous layer, stretch",
+    "targetInsets": {
+      "bottom": 194,
+      "right": 148,
+      "top": 208,
+      "left": 188
+    },
+    "file": "assets/background.png",
+    "sha256": "c9fa18c6efa6aa6037c20c1bc6ae5a11cd02e683bc3d9e55f9065c0576c50bac",
+    "sourceRect": [
+      416,
+      224,
+      896,
+      560
+    ]
+  },
+  "layout": {
+    "verticalMedallionHeight": 360,
+    "contentInsets": {
+      "bottom": 240,
+      "right": 224,
+      "top": 224,
+      "left": 416
+    },
+    "compactPolicy": "Scale the entire assembled frame uniformly below the minimum; do not independently shrink corner art.",
+    "fixedInsets": {
+      "bottom": 240,
+      "right": 224,
+      "top": 376,
+      "left": 416
+    },
+    "horizontalMedallionAnchor": "canvas center",
+    "verticalFlexibleRatio": [
+      8,
+      40
+    ],
+    "type": "17-patch-overlay-plus-background",
+    "horizontalMedallionWidth": 128
+  },
+  "colors": {
+    "accentBlue": "#72BAFF",
+    "mutedText": "#CBB3E8",
+    "text": "#F3E8FF",
+    "previewBackdrop": "#090D24",
+    "accentPurple": "#A77BFF",
+    "accentGold": "#F8D8AC"
+  },
+  "tiles": [
+    {
+      "id": "corner-tl",
+      "file": "assets/corner-tl.png",
+      "sourceRect": [
+        0,
+        0,
+        416,
+        376
+      ],
+      "stretch": "fixed",
+      "sha256": "a9ce692f6651523f5efa3f1dc26f5c1b4f11988461a7ac1b5c9af23a83b3fc9d"
+    },
+    {
+      "id": "corner-tr",
+      "file": "assets/corner-tr.png",
+      "sourceRect": [
+        1312,
+        0,
+        224,
+        376
+      ],
+      "stretch": "fixed",
+      "sha256": "354cfc46ca8fd6084ca7e4ff69b277ab64fd13cb397b686d92838756816c8148"
+    },
+    {
+      "id": "corner-bl",
+      "file": "assets/corner-bl.png",
+      "sourceRect": [
+        0,
+        784,
+        416,
+        240
+      ],
+      "stretch": "fixed",
+      "sha256": "640d1041a83e645e0a27b1a39fa73793bf79cc037ca1e4cc0311e51fd69c636d"
+    },
+    {
+      "id": "corner-br",
+      "file": "assets/corner-br.png",
+      "sourceRect": [
+        1312,
+        784,
+        224,
+        240
+      ],
+      "stretch": "fixed",
+      "sha256": "b7aceb1464fcd7c7f14311579a45820678b48fa537a195cdef6a8704a97c508d"
+    },
+    {
+      "id": "top-a",
+      "file": "assets/top-a.png",
+      "sourceRect": [
+        416,
+        0,
+        288,
+        376
+      ],
+      "stretch": "horizontal",
+      "sha256": "871b2876fa326d446dce4f271b880a3f6776c5e3bc93033019ee17b4a4eab04a"
+    },
+    {
+      "id": "top-star",
+      "file": "assets/top-star.png",
+      "sourceRect": [
+        704,
+        0,
+        128,
+        376
+      ],
+      "stretch": "fixed",
+      "sha256": "4d843c2a1a2219828f131ba5bfe7e183d782953ba4d9861300377d91acdb18e8"
+    },
+    {
+      "id": "top-b",
+      "file": "assets/top-b.png",
+      "sourceRect": [
+        832,
+        0,
+        480,
+        376
+      ],
+      "stretch": "horizontal",
+      "sha256": "e57d6b2e366e9346d370195149073f4690e85a41a3c86fbe4f1b500b49d2db4c"
+    },
+    {
+      "id": "bottom-a",
+      "file": "assets/bottom-a.png",
+      "sourceRect": [
+        416,
+        784,
+        288,
+        240
+      ],
+      "stretch": "horizontal",
+      "sha256": "efb5d2876c4efc51dd42c84dc83085b133cad5f7a376c86a780dd50f6c9670f0"
+    },
+    {
+      "id": "bottom-star",
+      "file": "assets/bottom-star.png",
+      "sourceRect": [
+        704,
+        784,
+        128,
+        240
+      ],
+      "stretch": "fixed",
+      "sha256": "bd34060e7b914c97f80a6159a059ca52510f3b9e012f0706711e98febcf59186"
+    },
+    {
+      "id": "bottom-b",
+      "file": "assets/bottom-b.png",
+      "sourceRect": [
+        832,
+        784,
+        480,
+        240
+      ],
+      "stretch": "horizontal",
+      "sha256": "3c8c396ce1aae8af30bac580ad174b8b9118aae77869dbe1dbe8db47f9e8289b"
+    },
+    {
+      "id": "left-a",
+      "file": "assets/left-a.png",
+      "sourceRect": [
+        0,
+        376,
+        416,
+        8
+      ],
+      "stretch": "vertical",
+      "sha256": "c3679ec58dfd47d2bc1c05fe1700d76228b19a1a7f05c5296c63561f0ee34b33"
+    },
+    {
+      "id": "left-star",
+      "file": "assets/left-star.png",
+      "sourceRect": [
+        0,
+        384,
+        416,
+        360
+      ],
+      "stretch": "fixed",
+      "sha256": "e5c59c750fd25c8b5ace09c0ba728c3dd3ec4dadfa6d43390b37566efb765d06"
+    },
+    {
+      "id": "left-b",
+      "file": "assets/left-b.png",
+      "sourceRect": [
+        0,
+        744,
+        416,
+        40
+      ],
+      "stretch": "vertical",
+      "sha256": "2085f934c598b0782ca7b337ccf35a8f3114a72526b308a7b849e170ec60f4d5"
+    },
+    {
+      "id": "right-a",
+      "file": "assets/right-a.png",
+      "sourceRect": [
+        1312,
+        376,
+        224,
+        8
+      ],
+      "stretch": "vertical",
+      "sha256": "0f124c2b14d8ea14a64abd689ec2645565d255c2af281e53e663dd06e10f236a"
+    },
+    {
+      "id": "right-star",
+      "file": "assets/right-star.png",
+      "sourceRect": [
+        1312,
+        384,
+        224,
+        360
+      ],
+      "stretch": "fixed",
+      "sha256": "bb06dc0e1a51447674a5c2816615dcefe4aad9b3599f83f815aa5de987efc499"
+    },
+    {
+      "id": "right-b",
+      "file": "assets/right-b.png",
+      "sourceRect": [
+        1312,
+        744,
+        224,
+        40
+      ],
+      "stretch": "vertical",
+      "sha256": "9897ffb08cfb5e4a6089145c4497d8a719cbaa2f16d0876b3622e1b60b5cd520"
+    },
+    {
+      "id": "center",
+      "file": "assets/center.png",
+      "sourceRect": [
+        416,
+        376,
+        896,
+        408
+      ],
+      "stretch": "both",
+      "sha256": "74aae6d2e65a79edf4248dcb21bbb0fa34dc8f6dbd911163961ed17355a385ed"
+    }
+  ]
+}

@@ -119,6 +119,10 @@ function Initialize-WidgetSettingsMenu {
   Add-SettingsDivider
   $script:settingsMenuUi.Character=Add-SettingsAction '更换形象' {Open-WidgetCharacterGallery} -ReturnItem
   $script:settingsMenuUi.Character.ToolTip='选择形象或添加电脑上的图片'
+  $script:settingsMenuUi.BubbleSkin=Add-SettingsSubmenu '聊天气泡样式' {
+    $script:settingsMenuUi.BubbleClassic=Add-SettingsAction '原始椭圆气泡' {Set-WidgetBubbleSkin 'classic'} -Description '恢复原有椭圆框与连接气泡' -Checkable -ReturnItem
+    $script:settingsMenuUi.BubbleAstral=Add-SettingsAction '星象星光框' {Set-WidgetBubbleSkin 'astral-starlight'} -Description '紫蓝星盘纹理，隐藏连接小气泡' -Checkable -ReturnItem
+  } -ReturnItem
   $script:settingsMenuUi.Appearance=Add-SettingsSubmenu '外观设置' {
   $presets=New-Object Windows.Controls.Primitives.UniformGrid;$presets.Columns=3;$presets.Margin=[Windows.Thickness]::new(0,1,0,2);$script:settingsMenuUi.SizeButtons=@()
   foreach($choice in @(@{label='小 · 80%';scale=0.8},@{label='标准 · 100%';scale=1.0},@{label='大 · 140%';scale=1.4})){
@@ -272,6 +276,8 @@ function Update-WidgetSettingsMenu{
     $script:settingsMenuUi.AutoQuoteEnabled.IsChecked=$script:autoQuoteEnabled
     foreach($choice in $script:settingsMenuUi.AutoQuoteIntervals){$choice.IsChecked=[int]$choice.Tag-eq $script:autoQuoteIntervalSeconds}
     if($script:settingsMenuUi.Character){$script:settingsMenuUi.Character.ToolTip=if($script:activeCharacter){'当前形象：'+$script:activeCharacter.name}else{'选择形象或添加电脑上的图片'}}
+    $script:settingsMenuUi.BubbleClassic.IsChecked=$script:bubbleSkin-eq 'classic';$script:settingsMenuUi.BubbleAstral.IsChecked=$script:bubbleSkin-eq 'astral-starlight'
+    $script:settingsMenuUi.BubbleSkin.Header='聊天气泡样式 · '+$(if($script:bubbleSkin-eq 'astral-starlight'){'星象星光框'}else{'原始椭圆气泡'})
     $script:settingsMenuUi.Bubble.Header=if(!$script:collapsed -and $script:bubbleMode-eq 'quota'){'收起额度气泡'}else{'查看额度'}
     $script:settingsMenuUi.Follow.IsChecked=$script:followHost;$script:settingsMenuUi.Desktop.IsChecked=!$script:followHost
     $script:settingsMenuUi.Topmost.IsChecked=$script:desktopTopmost;$script:settingsMenuUi.Topmost.IsEnabled=!$script:followHost
