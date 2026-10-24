@@ -19,7 +19,11 @@ with zipfile.ZipFile(archive_path) as archive:
     if manifest['version'] != version or manifest['name'] != 'codex-quota-widget' or package['name'] != manifest['name'] or marketplace['name'] != 'codex-quota-local':
         raise SystemExit('Fork package identity/version mismatch')
     for relative in ['assets/quotes.json', 'runtime/update-source.json']:
-        if archive.read(prefix + 'gpt-niang-usage/' + relative) != (root / 'gpt-niang-usage' / relative).read_bytes():
+        packaged = archive.read(prefix + 'gpt-niang-usage/' + relative)
+        source = (root / 'gpt-niang-usage' / relative).read_bytes()
+        # Windows checkout may convert text JSON to CRLF while the Linux
+        # publisher checkout keeps LF; compare content independent of EOL.
+        if packaged.replace(b'\r\n', b'\n') != source.replace(b'\r\n', b'\n'):
             raise SystemExit('Outdated Windows package resource: ' + relative)
     if any(entry.startswith(prefix + 'macos/') for entry in archive.namelist()):
         raise SystemExit('Mac app must not be included in this Windows package')
