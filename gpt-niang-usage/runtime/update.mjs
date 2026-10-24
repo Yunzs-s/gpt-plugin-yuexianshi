@@ -8,8 +8,14 @@ import {fileURLToPath} from 'node:url';
 import {atomicJson} from './usage.mjs';
 
 export const DAY = 86400000;
-export const RELEASE_API = 'https://api.github.com/repos/T7moris/GPT-Niang/releases/latest';
-const RELEASE_PATH = '/T7moris/GPT-Niang/releases/download/';
+export function createUpdateSource(repository) {
+  if(repository == null || repository === '')return null;
+  if(typeof repository !== 'string' || !/^[a-z\d](?:[a-z\d-]*[a-z\d])?\/[a-z\d_.-]+$/i.test(repository) ||
+    repository.toLowerCase() === 't7moris/gpt-niang' || /\/(?:\.|\.\.)$/.test(repository))throw new Error('Invalid fork update repository');
+  return Object.freeze({repository,api:`https://api.github.com/repos/${repository}/releases/latest`,releasePath:`/${repository}/releases/download/`});
+}
+export const UPDATE_SOURCE = createUpdateSource(JSON.parse(fs.readFileSync(new URL('./update-source.json',import.meta.url),'utf8')).repository);
+export const RELEASE_API = UPDATE_SOURCE?.api ?? null;
 const MAX_ZIP = 50 * 1024 * 1024, MAX_EXPANDED = 100 * 1024 * 1024;
 const read = file => {try{return JSON.parse(fs.readFileSync(file,'utf8'));}catch{return null;}};
 const readTransaction = file => {
@@ -43,29 +49,30 @@ export function isGitCheckout(directory) {
     if(path.dirname(dir)===dir)return false;
   }
 }
-export function allowedUrl(value,{api=false}={}) {
+export function allowedUrl(value,{api=false,source=UPDATE_SOURCE}={}) {
+  if(!source)throw new Error('更新来源尚未配置');
   const url=new URL(value);
   if(url.protocol!=='https:' || url.username || url.password || url.port || url.hash)throw new Error('Untrusted update URL');
   const host=url.hostname.toLowerCase();
-  const allowed=api ? value===RELEASE_API :
-    (host==='github.com' && url.pathname.startsWith(RELEASE_PATH)) ||
+  const allowed=api ? value===source.api :
+    (host==='github.com' && url.pathname.startsWith(source.releasePath)) ||
     ['release-assets.githubusercontent.com','github-releases.githubusercontent.com'].includes(host);
   if(!allowed)throw new Error('Untrusted update host');
   return url;
 }
 
 // No token, cookie, proxy credentials or login configuration is read here.
-export async function download(url,{limit=MAX_ZIP,api=false,request=https.get,onProgress=()=>{},redirects=0}={}) {
-  allowedUrl(url,{api});
+export async function download(url,{limit=MAX_ZIP,api=false,source=UPDATE_SOURCE,request=https.get,onProgress=()=>{},redirects=0}={}) {
+  allowedUrl(url,{api,source});
   if(redirects>5)throw new Error('Too many update redirects');
   return new Promise((resolve,reject)=>{
-    const req=request(url,{headers:{'User-Agent':'GPTNiangUsage-Updater','Accept':api?'application/vnd.github+json':'application/octet-stream'}},response=>{
+    const req=request(url,{headers:{'User-Agent':'CodexQuotaWidget-Updater','Accept':api?'application/vnd.github+json':'application/octet-stream'}},response=>{
       const status=response.statusCode;
       if([301,302,303,307,308].includes(status)) {
         response.resume();
         if(api){reject(new Error('Unexpected API redirect'));return;}
         try{const next=new URL(response.headers.location,url).href;
-          download(next,{limit,request,onProgress,redirects:redirects+1}).then(resolve,reject);
+          download(next,{limit,source,request,onProgress,redirects:redirects+1}).then(resolve,reject);
         }catch(error){reject(error);}return;
       }
       if(status!==200) {
@@ -95,16 +102,16 @@ export async function download(url,{limit=MAX_ZIP,api=false,request=https.get,on
     req.setTimeout(30000,()=>req.destroy(new Error('Update download timed out')));
   });
 }
-export function selectRelease(release,currentVersion) {
+export function selectRelease(release,currentVersion,{source=UPDATE_SOURCE}={}) {
   if(release.draft || release.prerelease || !versionParts(release.tag_name))return null;
   if(compareVersions(release.tag_name,currentVersion)<=0)return null;
   const version=release.tag_name.replace(/^v/,'');
-  const name=`gpt-niang-usage-widget-v${version}-windows.zip`;
+  const name=`codex-quota-widget-v${version}-windows.zip`;
   const choose=name=>{
     const matches=(release.assets??[]).filter(asset=>asset.name===name);
     if(matches.length!==1)throw new Error('Required Windows release asset missing or duplicated');
-    const asset=matches[0];allowedUrl(asset.browser_download_url);
-    const expected=RELEASE_PATH+encodeURIComponent(release.tag_name)+'/'+encodeURIComponent(name);
+    const asset=matches[0];allowedUrl(asset.browser_download_url,{source});
+    const expected=source.releasePath+encodeURIComponent(release.tag_name)+'/'+encodeURIComponent(name);
     if(new URL(asset.browser_download_url).hostname!=='github.com' || new URL(asset.browser_download_url).pathname!==expected)throw new Error('Release asset path mismatch');
     if(asset.size>MAX_ZIP)throw new Error('Release asset exceeds size limit');
     return asset;
@@ -176,8 +183,11 @@ export function inspectZip(bytes) {
 }
 export function validatePackage(zip,version) {
   const json=name=>{try{return JSON.parse(zip.files.get(name).toString('utf8'));}catch{throw new Error('Invalid package metadata: '+name);}};
-  if(json('gpt-niang-usage/.codex-plugin/plugin.json').version!==version || json('gpt-niang-usage/package.json').version!==version)throw new Error('Package version mismatch');
-  json('.agents/plugins/marketplace.json');
+  const manifest=json('gpt-niang-usage/.codex-plugin/plugin.json'),pkg=json('gpt-niang-usage/package.json');
+  if(manifest.version!==version || pkg.version!==version)throw new Error('Package version mismatch');
+  const marketplace=json('.agents/plugins/marketplace.json');
+  if(manifest.name!=='codex-quota-widget' || pkg.name!=='codex-quota-widget' || marketplace.name!=='codex-quota-local' ||
+    !marketplace.plugins?.some(plugin=>plugin.name==='codex-quota-widget' && plugin.source?.source==='local' && plugin.source.path==='./gpt-niang-usage'))throw new Error('Package identity mismatch');
   const required=json('gpt-niang-usage/runtime/install-files.json');
   if(!Array.isArray(required) || required.length>200)throw new Error('Invalid installation file list');
   for(const name of ['Install.ps1','runtime/update.mjs','runtime/update-helper.ps1','runtime/update-agent.ps1','runtime/update-lock.ps1','runtime/install-preflight.ps1','runtime/update-common.ps1',...required]) {
@@ -266,7 +276,7 @@ export function runUpdate(config,options={}) {
   if(jobs.has(key))return jobs.get(key);
   const job=performUpdate(config,options).finally(()=>jobs.delete(key));jobs.set(key,job);return job;
 }
-async function performUpdate(config,{mode='manual',agentDir=path.join(process.env.LOCALAPPDATA??'','GPTNiangUsage','update-agent'),fetchBytes=download,cleanup=token=>new Promise((resolve,reject)=>{
+async function performUpdate(config,{mode='manual',updateSource=UPDATE_SOURCE,agentDir=path.join(process.env.LOCALAPPDATA??'','CodexQuotaWidget','update-agent'),fetchBytes=download,cleanup=token=>new Promise((resolve,reject)=>{
   const child=spawn(path.join(process.env.WINDIR,'System32','WindowsPowerShell','v1.0','powershell.exe'),['-NoProfile','-ExecutionPolicy','Bypass','-File',path.join(agentDir,'update-helper.ps1'),'-Cleanup','-Token',token],{windowsHide:true,stdio:'ignore'});
   child.once('error',reject);child.once('exit',code=>code===0?resolve():reject(new Error('更新文件清理未完成，请关闭占用旧文件的程序后重试。')));
 }),waitIdle=async()=>{
@@ -297,15 +307,16 @@ async function performUpdate(config,{mode='manual',agentDir=path.join(process.en
       if(readTransaction(path.join(agentDir,'update-transaction.json'))?.cleanupPending)throw new Error('Previous update cleanup is still pending');
     }
     if(mode==='cleanup')return;
+    if(!updateSource){report({phase:'unconfigured',message:'更新来源尚未配置，请等待配置本项目的 GitHub 仓库。',nextCheckAt:Date.now()+DAY});return;}
     report({phase:'checking',message:'正在检查正式版…',nextCheckAt:Date.now()+DAY,retryAfterAt:0});
-    const release=JSON.parse((await fetchBytes(RELEASE_API,{api:true,limit:1024*1024})).toString('utf8'));
-    const selected=selectRelease(release,config.version);
+    const release=JSON.parse((await fetchBytes(updateSource.api,{api:true,source:updateSource,limit:1024*1024})).toString('utf8'));
+    const selected=selectRelease(release,config.version,{source:updateSource});
     if(!selected){report({phase:'current',message:'已是最新正式版。'});return;}
     report({phase:'downloading',version:selected.version,message:'正在下载更新…',bytes:0});
-    const sums=await fetchBytes(selected.sums.browser_download_url,{limit:1024*1024});
+    const sums=await fetchBytes(selected.sums.browser_download_url,{source:updateSource,limit:1024*1024});
     verifyAssetDigest(sums,selected.sums);
     let lastProgress=0;
-    const bytes=await fetchBytes(selected.zip.browser_download_url,{limit:MAX_ZIP,onProgress:bytes=>{if(Date.now()-lastProgress>500){lastProgress=Date.now();report({bytes});}}});
+    const bytes=await fetchBytes(selected.zip.browser_download_url,{source:updateSource,limit:MAX_ZIP,onProgress:bytes=>{if(Date.now()-lastProgress>500){lastProgress=Date.now();report({bytes});}}});
     const hash=verifyHash(bytes,sums,selected.zip),zip=inspectZip(bytes);validatePackage(zip,selected.version);
     const directory=path.join(config.dataDir,'updates',lock.owner.token);
     fs.mkdirSync(path.dirname(directory),{recursive:true});fs.mkdirSync(directory);jobDir=directory;
@@ -341,7 +352,7 @@ if(process.argv[1] && path.resolve(process.argv[1])===fileURLToPath(import.meta.
   }
   const config=read(process.argv[2]);
   if(!config?.appDir || !config.dataDir || !versionParts(config.version) || path.resolve(config.appDir)!==path.dirname(path.resolve(process.argv[2])))throw new Error('Invalid updater configuration');
-  const agentDir=path.join(process.env.LOCALAPPDATA,'GPTNiangUsage','update-agent'),binding=read(path.join(agentDir,'binding.json'));
+  const agentDir=path.join(process.env.LOCALAPPDATA,'CodexQuotaWidget','update-agent'),binding=read(path.join(agentDir,'binding.json'));
   if(!binding || path.resolve(binding.appDir)!==path.resolve(config.appDir) || path.resolve(binding.dataDir)!==path.resolve(config.dataDir))throw new Error('Updater installation binding mismatch');
   await runUpdate(config,{mode:['automatic','automatic-enabled','cleanup'].includes(process.argv[3])?process.argv[3]:'manual'});
 }

@@ -40,6 +40,7 @@ function Update-WidgetUpdateMenu {
     'rolled-back' {'更新失败，已恢复上一版'}
     'failed' {'更新失败：'+$state.message}
     'source' {'源码目录请使用 Git 更新'}
+    'unconfigured' {'更新来源尚未配置'}
     'rate-limited' {'GitHub 限流，稍后再检查'}
     'current' {'已是最新正式版'}
     'cancelled' {'自动更新已关闭'}

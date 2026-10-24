@@ -81,7 +81,7 @@ function Get-WidgetSupervisorRunningGui([string]$DataDir,[string]$ExpectedAppDir
 
 if($CheckOnly){return [pscustomobject]@{ok=$true;info=$info;hosts=@([GptWidgetSupervisorNative]::Hosts())}}
 
-$mutex=[Threading.Mutex]::new($false,('Local\GPTNiangSupervisor-'+$info.Sid))
+$mutex=[Threading.Mutex]::new($false,('Local\CodexQuotaSupervisor-'+$info.Sid))
 $owned=$false
 try{$owned=$mutex.WaitOne(0)}catch [Threading.AbandonedMutexException]{$owned=$true}
 if(!$owned){$mutex.Dispose();exit 0}

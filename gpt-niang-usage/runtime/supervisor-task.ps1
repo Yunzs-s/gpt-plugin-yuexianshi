@@ -4,6 +4,8 @@ function Get-WidgetInstallationDataDir {
   $root=[IO.Path]::GetFullPath($AppDir).TrimEnd('\')
   $previousRoot=[IO.Path]::GetFullPath([string]$Configuration.appDir).TrimEnd('\')
   $data=[IO.Path]::GetFullPath([string]$Configuration.dataDir)
+  $legacy=[IO.Path]::GetFullPath((Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'GPTNiangUsage')).TrimEnd('\')
+  if($data.TrimEnd('\')-ieq $legacy -or $data.StartsWith($legacy+'\',[StringComparison]::OrdinalIgnoreCase)){throw 'Original GPT Niang data cannot be reused by this fork. Install with a separate CodexQuotaWidget data directory.'}
   if($previousRoot-ine $root){
     # A moved installation may retain its preferences, but a copied active one may not claim the same registration.
     if(Test-Path -LiteralPath $previousRoot){throw 'The original installation folder still exists. Disable and move it before reinstalling.'}
@@ -39,7 +41,7 @@ function Test-WidgetStartupShortcutIdentity {
   param([Parameter(Mandatory=$true)]$Shortcut,[Parameter(Mandatory=$true)][string]$AppDir)
   $expectedExecute=Join-Path $env:WINDIR 'System32\wscript.exe'
   $expectedArguments='"'+(Join-Path ([IO.Path]::GetFullPath($AppDir)) 'launch.vbs')+'"'
-  $stable=if(Get-Command Get-WidgetUpdateAgentDir -ErrorAction SilentlyContinue){Get-WidgetUpdateAgentDir}else{Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'GPTNiangUsage\update-agent'}
+  $stable=if(Get-Command Get-WidgetUpdateAgentDir -ErrorAction SilentlyContinue){Get-WidgetUpdateAgentDir}else{Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'CodexQuotaWidget\update-agent'}
   $stableArguments='"'+(Join-Path $stable 'agent-launch.vbs')+'"'
   $argumentsMatch=[string]$Shortcut.Arguments-ieq $expectedArguments
   if([string]$Shortcut.Arguments-ieq $stableArguments){
@@ -104,10 +106,10 @@ function Get-WidgetSupervisorInfo {
   if([IO.Path]::GetFullPath([string]$config.appDir).TrimEnd('\')-ine $root){throw 'Supervisor installation identity mismatch.'}
   $data=[IO.Path]::GetFullPath([string]$config.dataDir)
   $sid=[Security.Principal.WindowsIdentity]::GetCurrent().User.Value
-  $agent=if(Get-Command Get-WidgetUpdateAgentDir -ErrorAction SilentlyContinue){Get-WidgetUpdateAgentDir}else{Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'GPTNiangUsage\update-agent'}
+  $agent=if(Get-Command Get-WidgetUpdateAgentDir -ErrorAction SilentlyContinue){Get-WidgetUpdateAgentDir}else{Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'CodexQuotaWidget\update-agent'}
   if($config.updateAgent -and [IO.Path]::GetFullPath($config.updateAgent)-ine $agent){throw 'Stable launcher path mismatch.'}
   $stable=[bool]$config.updateAgent
-  [pscustomobject]@{AppDir=$root;DataDir=$data;Sid=$sid;TaskName=('GPT Niang Usage - '+$sid);TaskPath='\';Execute=(Join-Path $env:WINDIR 'System32\wscript.exe');Arguments=$(if($stable){'"'+(Join-Path $agent 'agent-supervisor.vbs')+'"'}else{'"'+(Join-Path $root 'supervisor.vbs')+'"'});WorkingDirectory=$(if($stable){$agent}else{$root});AgentDir=$agent}
+  [pscustomobject]@{AppDir=$root;DataDir=$data;Sid=$sid;TaskName=('Codex Quota Widget - '+$sid);TaskPath='\';Execute=(Join-Path $env:WINDIR 'System32\wscript.exe');Arguments=$(if($stable){'"'+(Join-Path $agent 'agent-supervisor.vbs')+'"'}else{'"'+(Join-Path $root 'supervisor.vbs')+'"'});WorkingDirectory=$(if($stable){$agent}else{$root});AgentDir=$agent}
 }
 
 function Resolve-WidgetSupervisorSid([string]$Identity){

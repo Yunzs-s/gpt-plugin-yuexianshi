@@ -22,7 +22,7 @@ export function healthyWorker(dataDir,now=Date.now()) {
 
 export function workerEndpoint(dataDir){
   const key=createHash('sha256').update(path.resolve(dataDir).toLowerCase()).digest('hex').slice(0,32);
-  return process.platform==='win32'?'\\\\.\\pipe\\gpt-niang-usage-'+key:path.join(dataDir,'worker.sock');
+  return process.platform==='win32'?'\\\\.\\pipe\\codex-quota-widget-'+key:path.join(dataDir,'worker.sock');
 }
 
 export async function acquireWorkerLock(dataDir,parentPid=0,{pid=process.pid,onLost=()=>{},onConnection=socket=>socket.destroy()}={}) {

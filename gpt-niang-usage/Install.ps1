@@ -16,10 +16,10 @@ try {
   Stop-WidgetGui -AppDir $appDir -DataDir $config.dataDir
   Install-WidgetUpdateAgent $appDir $config.dataDir
   Write-WidgetSupervisorJson (Join-Path $appDir 'installation.json') $config
-  Write-WidgetSupervisorJson (Join-Path $appDir '.mcp.json') @{mcpServers=@{'gpt-niang-usage'=@{command=$config.nodePath;args=@((Join-Path $appDir 'runtime\mcp.mjs'))}}}
+  Write-WidgetSupervisorJson (Join-Path $appDir '.mcp.json') @{mcpServers=@{'codex-quota-widget'=@{command=$config.nodePath;args=@((Join-Path $appDir 'runtime\mcp.mjs'))}}}
   & $config.codexPath plugin marketplace add $config.marketplaceRoot --json
   if($LASTEXITCODE-ne 0){throw 'Codex rejected the local marketplace.'}
-  & $config.codexPath plugin add 'gpt-niang-usage@gpt-niang-local' --json
+  & $config.codexPath plugin add 'codex-quota-widget@codex-quota-local' --json
   if($LASTEXITCODE-ne 0){throw 'Codex rejected the GPT Niang plugin.'}
   Assert-WidgetPluginRegistration $config.codexPath $config.version
   $link=(New-Object -ComObject WScript.Shell).CreateShortcut($config.startupShortcut)

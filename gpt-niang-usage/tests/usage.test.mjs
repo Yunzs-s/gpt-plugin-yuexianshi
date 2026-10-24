@@ -240,7 +240,7 @@ test('MCP rejects malformed input without crashing and still serves read-only pr
   const responses=output.trim().split('\n').map(line=>JSON.parse(line));
   assert.equal(responses.filter(response=>response.error?.code===-32700).length,1);
   assert.equal(responses.filter(response=>response.error?.code===-32600).length,4);
-  assert.equal(responses.find(response=>response.id===1).result.serverInfo.name,'gpt-niang-usage');
+  assert.equal(responses.find(response=>response.id===1).result.serverInfo.name,'codex-quota-widget');
   assert.deepEqual(responses.find(response=>response.id===2).result,{});
   assert.equal(responses.find(response=>response.id===3).result.tools[0].name,'get_codex_usage');
 });

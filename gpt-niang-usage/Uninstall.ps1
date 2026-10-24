@@ -17,9 +17,9 @@ Stop-WidgetGui -AppDir $PSScriptRoot -DataDir $config.dataDir
 if(Test-Path -LiteralPath $config.startupShortcut){
   Remove-Item -LiteralPath $config.startupShortcut
 }
-& $config.codexPath plugin remove 'gpt-niang-usage@gpt-niang-local' --json
+& $config.codexPath plugin remove 'codex-quota-widget@codex-quota-local' --json
 if($LASTEXITCODE-ne 0){throw 'Codex plugin removal failed.'}
-& $config.codexPath plugin marketplace remove 'gpt-niang-local' --json
+& $config.codexPath plugin marketplace remove 'codex-quota-local' --json
 if($LASTEXITCODE-ne 0){throw 'Codex marketplace removal failed.'}
 $config|Add-Member -NotePropertyName disabledAt -NotePropertyValue ([DateTime]::UtcNow.ToString('o')) -Force
 Write-WidgetSupervisorJson (Join-Path $PSScriptRoot 'installation.json') $config

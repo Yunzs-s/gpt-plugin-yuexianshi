@@ -14,7 +14,7 @@ async function handle(m){
   try{
     let result;
     switch(m.method){
-      case 'initialize': result={protocolVersion:m.params?.protocolVersion??'2024-11-05',capabilities:{tools:{}},serverInfo:{name:'gpt-niang-usage',version:pluginVersion}};break;
+      case 'initialize': result={protocolVersion:m.params?.protocolVersion??'2024-11-05',capabilities:{tools:{}},serverInfo:{name:'codex-quota-widget',version:pluginVersion}};break;
       case 'ping':result={};break;
       case 'tools/list':result={tools:[tool]};break;
       case 'tools/call':{

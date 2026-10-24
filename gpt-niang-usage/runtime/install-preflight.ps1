@@ -17,7 +17,7 @@ function Get-WidgetInstallPreflight {
   if($agentDir-ieq $programRoot -or $agentDir.StartsWith($programRoot+'\',[StringComparison]::OrdinalIgnoreCase) -or $programRoot.StartsWith($agentDir+'\',[StringComparison]::OrdinalIgnoreCase)){throw 'Stable update launcher must be outside the program directory.'}
   $localData=[Environment]::GetFolderPath('LocalApplicationData')
   if(!$localData){throw 'Local application data folder unavailable.'}
-  $dataDir=Join-Path $localData 'GPTNiangUsage\state'
+  $dataDir=Join-Path $localData 'CodexQuotaWidget\state'
   $previousConfig=Join-Path $appDir 'installation.json'
   if(Test-Path -LiteralPath $previousConfig){$previous=Read-WidgetUpdateJson $previousConfig;$dataDir=Get-WidgetInstallationDataDir -AppDir $appDir -Configuration $previous}
   $dataDir=[IO.Path]::GetFullPath($dataDir).TrimEnd('\')
@@ -40,10 +40,13 @@ function Get-WidgetInstallPreflight {
   foreach($path in @($appDir,$sourceDir,$dataDir,(Get-WidgetUpdateAgentDir))){Assert-WidgetNoReparsePoint $path}
   $manifest=Read-WidgetUpdateJson (Join-Path $sourceDir '.codex-plugin\plugin.json')
   $package=Read-WidgetUpdateJson (Join-Path $sourceDir 'package.json')
+  if($manifest.name-ne 'codex-quota-widget' -or $package.name-ne 'codex-quota-widget'){throw 'Fork plugin identity mismatch.'}
   if(!$manifest.version -or $manifest.version-ne $package.version -or $manifest.version-notmatch '^\d+\.\d+\.\d+$'){throw 'Package version mismatch.'}
   if(!(Test-Path -LiteralPath (Join-Path (Split-Path $sourceDir -Parent) '.agents\plugins\marketplace.json'))){throw 'Marketplace metadata missing.'}
+  $marketplace=Read-WidgetUpdateJson (Join-Path (Split-Path $sourceDir -Parent) '.agents\plugins\marketplace.json')
+  if($marketplace.name-ne 'codex-quota-local' -or @($marketplace.plugins|Where-Object{$_.name-eq 'codex-quota-widget' -and $_.source.source-eq 'local' -and $_.source.path-eq './gpt-niang-usage'}).Count-ne 1){throw 'Fork marketplace identity mismatch.'}
   $startup=[Environment]::GetFolderPath('Startup');if(!$startup){throw 'Windows Startup folder unavailable.'}
-  $shortcut=Join-Path $startup 'GPT Niang Usage.lnk'
+  $shortcut=Join-Path $startup 'Codex Quota Widget.lnk'
   $config=@{version=$manifest.version;appDir=$appDir;dataDir=$dataDir;nodePath=$node;codexPath=$codex;marketplaceRoot=(Split-Path $appDir -Parent);startupShortcut=$shortcut;installedAt=[DateTime]::UtcNow.ToString('o');updateAgent=(Get-WidgetUpdateAgentDir);updaterSchema=1}
   $info=Get-WidgetSupervisorInfo -AppDir $appDir -Configuration $config
   $null=Get-WidgetSupervisorTask $info
@@ -58,7 +61,9 @@ function Get-WidgetInstallPreflight {
 }
 function Assert-WidgetPluginRegistration([string]$Codex,[string]$Version) {
   $processInfo=New-Object System.Diagnostics.ProcessStartInfo
-  $processInfo.FileName=$Codex;$processInfo.Arguments='plugin list --json';$processInfo.UseShellExecute=$false
+  # Verify this local registration only; unrelated remote marketplaces can
+  # stall a global list and abort installation before startup is configured.
+  $processInfo.FileName=$Codex;$processInfo.Arguments='plugin list --marketplace codex-quota-local --json';$processInfo.UseShellExecute=$false
   $processInfo.RedirectStandardOutput=$true;$processInfo.StandardOutputEncoding=[Text.UTF8Encoding]::new($false)
   $process=New-Object System.Diagnostics.Process;$process.StartInfo=$processInfo
   try{
@@ -68,6 +73,6 @@ function Assert-WidgetPluginRegistration([string]$Codex,[string]$Version) {
     if($process.ExitCode-ne 0){throw 'Cannot verify plugin registration.'}
     $catalog=$pending.Result|ConvertFrom-Json
   }finally{$process.Dispose()}
-  $match=@($catalog.installed|Where-Object{$_.pluginId-eq 'gpt-niang-usage@gpt-niang-local' -and $_.version-eq $Version -and $_.installed -and $_.enabled})
+  $match=@($catalog.installed|Where-Object{$_.pluginId-eq 'codex-quota-widget@codex-quota-local' -and $_.version-eq $Version -and $_.installed -and $_.enabled})
   if($match.Count-ne 1){throw 'Codex did not report one enabled GPT Niang plugin.'}
 }

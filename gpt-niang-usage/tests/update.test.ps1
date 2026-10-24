@@ -14,7 +14,7 @@ function Write-WidgetSupervisorJson([string]$File,$Value) {
   & $script:jsonWriter $File $Value
 }
 function Get-ScheduledTask {return @()}
-$startup=Join-Path ([Environment]::GetFolderPath('Startup')) 'GPT Niang Usage.lnk'
+$startup=Join-Path ([Environment]::GetFolderPath('Startup')) 'Codex Quota Widget.lnk'
 function Test-Path {
   [CmdletBinding(DefaultParameterSetName='Path')]
   param([Parameter(Position=0,ParameterSetName='Path')][string[]]$Path,[Parameter(ParameterSetName='LiteralPath')][string[]]$LiteralPath,[Microsoft.PowerShell.Commands.TestPathType]$PathType)

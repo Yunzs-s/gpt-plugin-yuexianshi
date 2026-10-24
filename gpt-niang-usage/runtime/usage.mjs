@@ -167,7 +167,7 @@ export function readUsage(cli, {timeoutMs=18000,spawnProcess=spawn,onAccount=()=
         finish(data);
       }
     });
-    send({id:1,method:'initialize',params:{clientInfo:{name:'gpt_niang_usage',title:'GPT 娘额度挂件',version:pluginVersion}}});
+    send({id:1,method:'initialize',params:{clientInfo:{name:'codex_quota_widget',title:'GPT 娘额度挂件',version:pluginVersion}}});
   });
 }
 

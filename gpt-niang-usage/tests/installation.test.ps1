@@ -18,7 +18,7 @@ try{
   $commonFile=Join-Path $moved 'runtime\update-common.ps1'
   $common=[IO.File]::ReadAllText($commonFile)
   $isolatedAgent=Join-Path $testRoot 'update-agent'
-  $common=$common.Replace("(Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'GPTNiangUsage\update-agent')",("'"+$isolatedAgent.Replace("'","''")+"'"))
+  $common=$common.Replace("(Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'CodexQuotaWidget\update-agent')",("'"+$isolatedAgent.Replace("'","''")+"'"))
   [IO.File]::WriteAllText($commonFile,$common,[Text.UTF8Encoding]::new($false))
   $old=Join-Path $testRoot 'original'
   $data=Join-Path $testRoot 'state'
@@ -41,7 +41,7 @@ try{
   Assert (!(Test-WidgetStartupShortcutIdentity $shortcut $moved)) 'foreign shortcut executable is rejected'
 
   # Stubs prevent reading or changing actual per-user task and startup registrations.
-  $global:widgetInstallerTestStartup=Join-Path ([Environment]::GetFolderPath('Startup')) 'GPT Niang Usage.lnk'
+  $global:widgetInstallerTestStartup=Join-Path ([Environment]::GetFolderPath('Startup')) 'Codex Quota Widget.lnk'
   function Test-Path {
     [CmdletBinding(DefaultParameterSetName='Path')]
     param(

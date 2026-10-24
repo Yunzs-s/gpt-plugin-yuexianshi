@@ -1,3 +1,8 @@
+# gpt-plugin-yuexianshi
+余额显示插件修改，原作者 https://github.com/T7moris/GPT-Niang/releases；
+
+> 本地开发分支：仅面向 Windows 11，插件 ID 为 `codex-quota-widget@codex-quota-local`，数据位于 `%LOCALAPPDATA%\CodexQuotaWidget`。更新源已与上游隔离，指向 `Yunzs-s/gpt-plugin-yuexianshi`。开发使用说明见 [开发说明](开发说明.md)，美术交付见 [美术素材规范](美术素材规范.md)。下面保留上游说明及作者致谢，其中原版下载链接不代表本地版本。
+
 # GPT-Niang（GPT 娘）
 
 让一只白发紫瞳的小龙娘，陪你看 Codex 的剩余额度。

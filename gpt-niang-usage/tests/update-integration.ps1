@@ -6,7 +6,7 @@ $testRoot=Join-Path ([IO.Path]::GetTempPath()) ('gpt-niang-update-live-'+[Guid]:
 $app=Join-Path $testRoot 'install\gpt-niang-usage';$agent=Join-Path $testRoot 'agent';$data=Join-Path $testRoot 'state'
 $powerShell=Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe'
 $sid=[Security.Principal.WindowsIdentity]::GetCurrent().User.Value
-$taskName='GPT Niang Usage Updater Test - '+$sid
+$taskName='Codex Quota Widget Updater Test - '+$sid
 $processes=New-Object Collections.Generic.List[Diagnostics.Process]
 Add-Type -AssemblyName System.IO.Compression,System.IO.Compression.FileSystem
 $lock=$null
@@ -20,8 +20,8 @@ function Copy-TestPackage([string]$Root,[string]$Version) {
     [IO.File]::WriteAllText($file,($value|ConvertTo-Json -Depth 12),[Text.UTF8Encoding]::new($false))
   }
   $files=@{
-    'update-common.ps1'=@{Before="(Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'GPTNiangUsage\update-agent')";After=("'"+$agent.Replace("'","''")+"'")}
-    'supervisor-task.ps1'=@{Before='(''GPT Niang Usage - ''+$sid)';After='(''GPT Niang Usage Updater Test - ''+$sid)'}
+    'update-common.ps1'=@{Before="(Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'CodexQuotaWidget\update-agent')";After=("'"+$agent.Replace("'","''")+"'")}
+    'supervisor-task.ps1'=@{Before='(''Codex Quota Widget - ''+$sid)';After='(''Codex Quota Widget Updater Test - ''+$sid)'}
     'install-preflight.ps1'=@{Before="[Environment]::GetFolderPath('Startup')";After=("'"+(Join-Path $testRoot 'startup').Replace("'","''")+"'")}
     'supervisor.ps1'=@{Before='$hosts=@([GptWidgetSupervisorNative]::Hosts())';After='$hosts=@()'}
     'update-agent.ps1'=@{Before='$ErrorActionPreference=''Stop''';After=('$ErrorActionPreference=''Stop'''+[Environment]::NewLine+'$env:CODEX_HOME='''+(Join-Path $testRoot 'codex-home').Replace("'","''")+'''')}
@@ -29,7 +29,7 @@ function Copy-TestPackage([string]$Root,[string]$Version) {
   foreach($entry in $files.GetEnumerator()) {
     $file=Join-Path $target ('runtime\'+$entry.Key);$text=[IO.File]::ReadAllText($file)
     $text=$text.Replace($entry.Value.Before,$entry.Value.After)
-    if($entry.Key-eq 'supervisor.ps1'){$text=$text.Replace('Local\GPTNiangSupervisor-',('Local\GPTNiangSupervisorTest-'+(Split-Path $testRoot -Leaf)+'-'))}
+    if($entry.Key-eq 'supervisor.ps1'){$text=$text.Replace('Local\CodexQuotaSupervisor-',('Local\CodexQuotaSupervisorTest-'+(Split-Path $testRoot -Leaf)+'-'))}
     [IO.File]::WriteAllText($file,$text,[Text.UTF8Encoding]::new($false))
   }
 }

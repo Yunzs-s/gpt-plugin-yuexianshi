@@ -22,11 +22,11 @@ if heading not in changelog or changelog.split("## ", 1)[1].splitlines()[0] != v
 changes = changelog.split(heading, 1)[1].split("\n## ", 1)[0].strip()
 credits = (root / 'README.md').read_text(encoding='utf-8-sig').split('## 致谢与许可\n\n', 1)[1].split('\n\n交互参考', 1)[0]
 tracked = subprocess.check_output(
-    ["git", "ls-files", "-z"], cwd=root
+    ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"], cwd=root
 ).decode("utf-8").split("\0")
 # Keep maintainer docs in Git. The updater preserves an existing docs directory
 # as personal data, so shipping another docs tree would collide on upgrade.
-files = sorted(p for p in tracked if p and not p.startswith((".github/", "scripts/", ".codex/", "macos/", "script/", "docs/")))
+files = sorted(set(p for p in tracked if p and p not in {"开发说明.md", "本地验证记录.md", "美术素材规范.md"} and not p.startswith((".github/", "scripts/", ".codex/", "macos/", "script/", "docs/", "美术素材/", "gpt-niang-usage/bubble-backups/", "gpt-niang-usage/bubble-styles/previews/"))))
 required = {
     "LICENSE", "gpt-niang-usage/LICENSE",
     "gpt-niang-usage/assets/CHARACTER-NOTICE.txt",
@@ -71,7 +71,7 @@ for name in files:
         raise SystemExit(f"Unexpected local state: {name}")
 dist = root / "dist"
 dist.mkdir(exist_ok=True)
-archive_name = f"gpt-niang-usage-widget-v{version}-windows.zip"
+archive_name = f"codex-quota-widget-v{version}-windows.zip"
 archive_path = dist / archive_name
 prefix = "GPT娘额度挂件/"
 with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
@@ -93,7 +93,7 @@ notes = (
     "### 下载与更新\n\n"
     f"下载 **`{archive_name}`**，完整解压后运行根目录的 `安装GPT娘.cmd`。\n\n"
     "旧版用户请先备份自定义内容，在原目录覆盖新版文件，再运行安装器；保留原有偏好。\n\n"
-    "仅支持 Windows 10 / 11，需要 Node.js 20 或更新版本及已登录的 Codex 桌面端。\n\n"
+    "开发与验证目标为 Windows 11，需要 Node.js 20 或更新版本及已登录的 Codex 桌面端。\n\n"
     f"SHA256：`{digest}`（同时提供 `SHA256SUMS.txt`）。\n\n"
     f"### 致谢\n\n{credits}\n"
 )

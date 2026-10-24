@@ -1,5 +1,5 @@
 function Get-WidgetUpdateAgentDir {
-  return (Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'GPTNiangUsage\update-agent')
+  return (Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'CodexQuotaWidget\update-agent')
 }
 function Read-WidgetUpdateJson([string]$File) {
   if(Test-Path -LiteralPath $File){return (Get-Content -LiteralPath $File -Raw -Encoding UTF8|ConvertFrom-Json)}
@@ -30,7 +30,7 @@ function Enter-WidgetUpdateLock {
   $sha=[Security.Cryptography.SHA256]::Create()
   try{$key=[BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes([IO.Path]::GetFullPath($AgentDir).TrimEnd('\').ToLowerInvariant()))).Replace('-','')}
   finally{$sha.Dispose()}
-  $mutex=[Threading.Mutex]::new($false,('Global\GPTNiangUpdateReclaim-'+$key));$held=$false
+  $mutex=[Threading.Mutex]::new($false,('Global\CodexQuotaUpdateReclaim-'+$key));$held=$false
   try {
     try{$held=$mutex.WaitOne(5000)}catch [Threading.AbandonedMutexException]{$held=$true}
     if(!$held){throw 'Update lock reclamation is busy.'}

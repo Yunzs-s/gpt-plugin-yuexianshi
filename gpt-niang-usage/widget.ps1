@@ -295,6 +295,17 @@ function Limit-WidgetHorizontalPosition($Frame,[double]$Dpi,[double]$Left) {
   # Mirror-aware character bounds; transparent bubble space may extend outside.
   # Use the resting layout so press/rebound never changes the drag limits.
   $root=$script:ui.Root;$girl=$script:ui.Girl
+  if(![Windows.PresentationSource]::FromVisual($root.Parent)){
+    # EnsureHandle creates an HWND before WPF connects its visual tree. Use
+    # resting design coordinates for the first placement, before Show().
+    $girlLeft=[Windows.Controls.Canvas]::GetLeft($girl)
+    if($script:ui.FacingScale.ScaleX-lt 0){$girlLeft=$root.Width-$girlLeft-$girl.Width}
+    $factor=$script:displayScale*$Dpi
+    $leftOffset=([Windows.Controls.Canvas]::GetLeft($root)+$girlLeft)*$factor
+    $minimum=$Frame.Left-$leftOffset;$maximum=$Frame.Right-$leftOffset-$girl.Width*$factor
+    if($maximum-lt $minimum){return [int][Math]::Round(($minimum+$maximum)/2)}
+    return [int][Math]::Round([Math]::Max($minimum,[Math]::Min($maximum,$Left)))
+  }
   $rootOffset=[Windows.Media.VisualTreeHelper]::GetOffset($root)
   $girlOffset=[Windows.Media.VisualTreeHelper]::GetOffset($girl)
   $girlLeft=$girlOffset.X
@@ -312,6 +323,12 @@ function Limit-WidgetVerticalPosition($Frame,[double]$Dpi,[double]$Top) {
   # Keep the character inside the frame; the transparent space reserved for
   # its bubble may extend above it. Ignore transient press/rebound transforms.
   $root=$script:ui.Root;$girl=$script:ui.Girl
+  if(![Windows.PresentationSource]::FromVisual($root.Parent)){
+    $factor=$script:displayScale*$Dpi
+    $topOffset=([Windows.Controls.Canvas]::GetTop($root)+[Windows.Controls.Canvas]::GetTop($girl))*$factor
+    $minimum=$Frame.Top-$topOffset;$maximum=$Frame.Bottom-$topOffset-$girl.Height*$factor
+    return [int][Math]::Round([Math]::Max($minimum,[Math]::Min($maximum,$Top)))
+  }
   $rootOffset=[Windows.Media.VisualTreeHelper]::GetOffset($root)
   $girlOffset=[Windows.Media.VisualTreeHelper]::GetOffset($girl)
   $left=$rootOffset.X+$girlOffset.X;$topInStage=$rootOffset.Y+$girlOffset.Y
@@ -722,7 +739,7 @@ if($Preview){
   $encoder.Frames.Add([Windows.Media.Imaging.BitmapFrame]::Create($render))
   $stream=[IO.File]::Create((Join-Path $script:appDir 'preview.png'));try{$encoder.Save($stream)}finally{$stream.Dispose()};return
 }
-$mutexKey='Local\GPTNiangUsage_'+([Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($script:appDir))).Replace('/','_').Replace('+','-')
+$mutexKey='Local\CodexQuotaWidget_'+([Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($script:appDir))).Replace('/','_').Replace('+','-')
 $script:mutex=[Threading.Mutex]::new($false,$mutexKey);$script:mutexOwned=$false
 try{$script:mutexOwned=$script:mutex.WaitOne(0)}catch [Threading.AbandonedMutexException]{$script:mutexOwned=$true}
 if(!$script:mutexOwned){Request-Refresh;$script:mutex.Dispose();return}

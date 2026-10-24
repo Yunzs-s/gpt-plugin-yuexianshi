@@ -8,8 +8,15 @@ import {EventEmitter} from 'node:events';
 import {Readable} from 'node:stream';
 import {deflateRawSync} from 'node:zlib';
 import {spawn,spawnSync} from 'node:child_process';
-import {compareVersions,versionParts,selectRelease,verifyHash,inspectZip,validatePackage,extractPackage,validateExtractedPackage,safeZipName,allowedUrl,download,runUpdate,acquireUpdateLock,updatePreferences,checkDue,installIdle,DAY,RELEASE_API} from '../runtime/update.mjs';
+import {compareVersions,versionParts,selectRelease as selectReleaseImpl,verifyHash,inspectZip,validatePackage,extractPackage,validateExtractedPackage,safeZipName,allowedUrl as allowedUrlImpl,download as downloadImpl,runUpdate as runUpdateImpl,acquireUpdateLock,updatePreferences,checkDue,installIdle,DAY,createUpdateSource} from '../runtime/update.mjs';
 import {requestRefresh} from '../runtime/refresh-client.mjs';
+
+// All updater tests use an isolated fixture repository and fake network calls.
+const TEST_SOURCE=createUpdateSource('quota-test/codex-quota-widget'),RELEASE_API=TEST_SOURCE.api;
+const selectRelease=(release,version)=>selectReleaseImpl(release,version,{source:TEST_SOURCE});
+const allowedUrl=(url,options={})=>allowedUrlImpl(url,{source:TEST_SOURCE,...options});
+const download=(url,options={})=>downloadImpl(url,{source:TEST_SOURCE,...options});
+const runUpdate=(config,options={})=>runUpdateImpl(config,{updateSource:TEST_SOURCE,...options});
 
 const required=JSON.parse(fs.readFileSync(new URL('../runtime/install-files.json',import.meta.url),'utf8'));
 function crc(bytes){let value=0xffffffff;for(const byte of bytes){value^=byte;for(let bit=0;bit<8;bit++)value=(value>>>1)^((value&1)?0xedb88320:0);}return (value^0xffffffff)>>>0;}
@@ -28,12 +35,12 @@ export function zipFixture(files,{mode=0x8000,compressed=false,expandedOverride}
 }
 function packageFiles(version='1.3.3') {
   const files=Object.fromEntries(required.map(name=>['GPT娘额度挂件/gpt-niang-usage/'+name,'fixture']));
-  for(const name of ['package.json','.codex-plugin/plugin.json'])files['GPT娘额度挂件/gpt-niang-usage/'+name]=JSON.stringify({version});
+  for(const name of ['package.json','.codex-plugin/plugin.json'])files['GPT娘额度挂件/gpt-niang-usage/'+name]=JSON.stringify({name:'codex-quota-widget',version});
   files['GPT娘额度挂件/gpt-niang-usage/runtime/install-files.json']=JSON.stringify(required);
-  files['GPT娘额度挂件/.agents/plugins/marketplace.json']='{}';return files;
+  files['GPT娘额度挂件/.agents/plugins/marketplace.json']=JSON.stringify({name:'codex-quota-local',plugins:[{name:'codex-quota-widget',source:{source:'local',path:'./gpt-niang-usage'}}]});return files;
 }
 function release(bytes,version='1.3.3') {
-  const name=`gpt-niang-usage-widget-v${version}-windows.zip`,base=`https://github.com/T7moris/GPT-Niang/releases/download/v${version}/`;
+  const name=`codex-quota-widget-v${version}-windows.zip`,base=`https://github.com/${TEST_SOURCE.repository}/releases/download/v${version}/`;
   return {tag_name:'v'+version,assets:[{name,browser_download_url:base+name,size:bytes.length,digest:'sha256:'+createHash('sha256').update(bytes).digest('hex')},{name:'SHA256SUMS.txt',browser_download_url:base+'SHA256SUMS.txt'}]};
 }
 function temporary(t) {
@@ -85,6 +92,12 @@ test('ZIP entry limits, decompression limits, CRC and local path checks precede 
 test('version and required-file validation rejects incomplete packages',()=>{
   assert.throws(()=>validatePackage(inspectZip(zipFixture(packageFiles('9.0.0'))),'1.3.3'));
   const files=packageFiles();delete files['GPT娘额度挂件/gpt-niang-usage/runtime/watch.mjs'];assert.throws(()=>validatePackage(inspectZip(zipFixture(files)),'1.3.3'));
+});
+
+test('matching version cannot authorize an upstream or foreign plugin package',()=>{
+  const files=packageFiles();
+  files['GPT娘额度挂件/gpt-niang-usage/.codex-plugin/plugin.json']=JSON.stringify({name:'gpt-niang-usage',version:'1.3.3'});
+  assert.throws(()=>validatePackage(inspectZip(zipFixture(files)),'1.3.3'),/identity mismatch/);
 });
 test('candidate files are compared to the validated archive again before replacement',t=>{
   const dir=temporary(t),bytes=zipFixture(packageFiles()),archive=path.join(dir,'release.zip');fs.writeFileSync(archive,bytes);
@@ -214,7 +227,7 @@ function fakeRequest(status,headers={},chunks=['payload']) {
   };
 }
 test('HTTP limits, rate limits and unsafe redirects are enforced without credentials',async()=>{
-  const url='https://github.com/T7moris/GPT-Niang/releases/download/v1.3.3/file.zip';
+  const url=`https://github.com/${TEST_SOURCE.repository}/releases/download/v1.3.3/file.zip`;
   await assert.rejects(download(url,{request:fakeRequest(429,{'retry-after':'172800'})}),error=>error.retryAfterMs>=DAY*2);
   await assert.rejects(download(url,{request:fakeRequest(429,{'retry-after':'60'})}),error=>error.retryAfterMs===60000);
   await assert.rejects(download(url,{limit:3,request:fakeRequest(200,{},['too big'])}));
